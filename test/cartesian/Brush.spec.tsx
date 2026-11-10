@@ -664,6 +664,7 @@ describe('<Brush />', () => {
         startIndexes.push(selectedStartIndex());
       }
       fireEvent.mouseUp(traveller);
+      expect(['TEMPORARY PROBE', ...startIndexes]).toEqual(['TEMPORARY PROBE']);
 
       // Every move passes more data points, so the start index keeps growing instead of
       // snapping back to its initial value after the first onChange.
