@@ -1,0 +1,32 @@
+# Fork-only helper: runs the checks for this branch's changes on GitHub's machines, so nothing has
+# to be installed locally. Lives on the ci-sandbox branch of the fork and is never part of a PR.
+name: Fork tests
+on:
+  push:
+    branches: [ci-sandbox]
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Prettier and ESLint (changed files)
+        run: |
+          files=$(git diff --name-only --diff-filter=AM origin/main...HEAD -- src test)
+          echo "$files"
+          if [ -n "$files" ]; then npx prettier --check $files && npx eslint $files; fi
+      - name: Type check tests
+        if: ${{ !cancelled() }}
+        run: npm run check-types-test
+      - name: Brush tests
+        if: ${{ !cancelled() }}
+        run: npx vitest run --config vitest.config.mts --project 'unit:*' test/cartesian/Brush
