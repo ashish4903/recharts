@@ -27,6 +27,9 @@ jobs:
       - name: Type check tests
         if: ${{ !cancelled() }}
         run: npm run check-types-test
-      - name: Brush tests
+      - name: Tests in changed test files
         if: ${{ !cancelled() }}
-        run: npx vitest run --config vitest.config.mts --project 'unit:*' test/cartesian/Brush
+        run: |
+          files=$(git diff --name-only --diff-filter=AM origin/main...HEAD -- test | grep -E '\.spec\.tsx?$')
+          echo "$files"
+          npx vitest run --config vitest.config.mts --project 'unit:*' $files
